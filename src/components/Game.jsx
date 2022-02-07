@@ -33,8 +33,6 @@ const TEXTURES = [
 
 const CARDS_TEXTURES = [...TEXTURES, ...TEXTURES].sort(() => 0.5 - Math.random());
 
-const DONE = [];
-
 function usePositions(cols, rows, gap = 0.125) {
   return useMemo(() => {
     const positions = [];
@@ -79,7 +77,7 @@ function PexesoCard({ texture, done, active, onClick, color, ...restProps }) {
     <mesh
       {...restProps}
       ref={mesh}
-      scale={!done && hovered ? 1.05 : 1}
+      scale={done ? 0.75 : hovered ? 1.05 : 1}
       onClick={done ? () => {} : onClick}
       onPointerOver={(event) => setHover(true)}
       onPointerOut={(event) => setHover(false)}
@@ -90,19 +88,18 @@ function PexesoCard({ texture, done, active, onClick, color, ...restProps }) {
   );
 }
 
-function PexesoBorad() {
+function PexesoBorad({ size = 4 }) {
   const [score, increment, decrement] = useScore();
-  const positions = usePositions(4, 4);
+  const positions = usePositions(size, size);
   const [activeCards, activeCardsActions] = useSet();
+  const [doneCards, doneCardsActions] = useSet();
 
   const handleCardClick = (idx) => {
     // Handle hidden state & score
     if (activeCards.length === 1) {
-      // Match
-      if (CARDS_TEXTURES[activeCards[0]] === CARDS_TEXTURES[idx]) {
-        increment(5);
-        DONE.push(activeCards[0]);
-        DONE.push(idx);
+      if (activeCards[0] !== idx && CARDS_TEXTURES[activeCards[0]] === CARDS_TEXTURES[idx]) {
+        increment(5); // Match
+        doneCardsActions.add(activeCards[0], idx);
       } else {
         decrement(2); // Not Match
       }
@@ -126,7 +123,7 @@ function PexesoBorad() {
             key={idx}
             position={position}
             texture={CARDS_TEXTURES[idx]}
-            done={DONE.includes(idx)}
+            done={doneCardsActions.has(idx)}
             active={activeCardsActions.has(idx)}
             onClick={() => handleCardClick(idx)}
           />
@@ -154,7 +151,7 @@ function Game() {
   return (
     <div className="w-screen h-screen">
       <StatusBar />
-      <PexesoBorad />
+      <PexesoBorad size={4} />
     </div>
   );
 }

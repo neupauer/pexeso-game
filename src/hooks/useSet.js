@@ -3,9 +3,8 @@ import { useCallback, useMemo, useState } from "react";
 function useSet(initialState = []) {
   const [values, setValues] = useState(initialState);
 
-  const add = (val) => {
-    const s = new Set(values);
-    s.add(val);
+  const add = (...val) => {
+    const s = new Set([...values, ...val]);
     setValues([...s]);
   };
 
